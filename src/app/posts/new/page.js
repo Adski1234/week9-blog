@@ -5,6 +5,7 @@ import pool from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 async function createPost (formData) {
+    "use server";
     const title = formData.get("title");
     const content = formData.get("content");
 
