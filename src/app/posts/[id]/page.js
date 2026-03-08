@@ -1,3 +1,5 @@
+"use server";
+
 import pool from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,6 +7,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 async function deletePost (formData) {
+    "use server";
     const id = formData.get("id");
     await pool.query("DELETE FROM posts WHERE id = $1", [id]);
     revalidatePath("/posts");
@@ -12,6 +15,7 @@ async function deletePost (formData) {
 }
 
 async function addComment (formData) {
+    "use server";
     const postId = formData.get("postId");
     const author = formData.get("author");
     const body = formData.get("body");
@@ -23,7 +27,7 @@ async function addComment (formData) {
 
 
 export default async function PostPage ({ params }) {
-    const { id } = params;
+    const { id } = (await params);
     const postResult = await pool.query("SELECT * FROM posts WHERE id = $1", [id]);
 
     if (postResult.rows.length === 0) return notFound();
@@ -44,23 +48,41 @@ export default async function PostPage ({ params }) {
                 </div>      
  ))}
 
-    <h2>Add a Comment</h2>
-    <form action={addComment}>
-        <input type="hidden" name="postId" value={id} />
-        <label>
-            Name
-            <input type="text" name="author" placeholder="Anonymous"/>
-        </label>
-        <label>
-            Comment
-            <textarea name="body" required />
-        </label>
-        <button type="submit">Add Comment</button>
-    </form>
-            <form action={deletePost}>
-                <input type="hidden" name="id" value={post.id} />
-                <button type="submit">Delete Post</button>
-            </form>
+    <h2 className="text-xl font-bold mt-8 mb-4">Leave a Comment</h2>
+        <form action={addComment} className="space-y-4">
+        <input type="hidden" name="postId" value={post.id} />
+
+    <div>
+        <label className="block mb-1 font-medium text-gray-700">Your Name</label>
+            <input
+                type="text"
+                name="author"
+                placeholder="Anonymous"
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+    </div>
+
+    <div>
+        <label className="block mb-1 font-medium text-gray-700">Comment</label>
+        <textarea
+        name="body"
+        required
+        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+    </div>
+
+        <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+        Post Comment
+        </button>
+</form>
+    <form action={deletePost} className="mt-8">
+    <input type="hidden" name="id" value={post.id} />
+    <button
+        type="submit"
+        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors text-sm" >
+    Delete Post
+  </button>
+</form>
         </main> 
     );
 }
